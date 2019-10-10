@@ -96,7 +96,8 @@ hr(),
 p("This interface was made with ",
 tags$a(href="https://shiny.rstudio.com/", 
 	"Shiny for R."),
-
+tags$a(href="https://github.com/edyhsgr/CACountyPyramids", 
+	"Related GitHub repository."),
 "October 2019."),
 
 width=3
