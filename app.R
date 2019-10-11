@@ -15,7 +15,7 @@
 library(shiny)
 ui<-fluidPage(
 
-	tags$h3("California County Population Pyramid Viewer"),
+	tags$h3("California State and County Population Pyramid Viewer"),
 	p("California county population estimates and projections by age and sex for 1970 to 2050. Developed by the California Department of Finance, accessed via ",
 	tags$a(href="https://data.ca.gov/dataset/california-population-projection-by-county-age-gender-and-ethnicity", "data.ca.gov")),
   
@@ -24,8 +24,9 @@ hr(),
 sidebarLayout(
 sidebarPanel(
 
- selectInput("County", "County",
+ selectInput("Area", "Area",
 c(
+"California"="6",
 "Alameda"="6001",
 "Alpine"="6003",
 "Amador"="6005",
@@ -93,14 +94,14 @@ numericInput("YEAR_2","Year for outline",2000,1970,2050,step=1),
 
 hr(),
 
-selectInput("SetXAxes", "Set x-axes?",
+selectInput("SetXAxes", "Set x-axes manually?",
 c(
 "No"="NO",
 "Yes"="YES"
 ),
 ),
 
-numericInput("XAxesMax","If yes, x-axes maximum",10000,0,500000,step=1000),
+numericInput("XAxesMax","If yes, x-axes maximum",500000,0,1000000,step=1000),
 
 hr(),
 
@@ -121,6 +122,7 @@ mainPanel(
 )
 
 choicevec<-c(
+"California"="6",
 "Alameda"="6001",
 "Alpine"="6003",
 "Amador"="6005",
@@ -183,7 +185,7 @@ choicevec<-c(
 
 server<-function(input, output) {	
 	output$plots<-renderPlot({
-par(mfrow=c(1,2), mai=c(2,.575,.5,0.1))
+par(mfrow=c(1,2), mai=c(2,.575,.5,0.05))
 
 #####
 #####
@@ -195,36 +197,82 @@ Kx<-data.frame(read.table(file="https://raw.githubusercontent.com/edyhsgr/CACoun
 cat<-read.table(file="https://raw.githubusercontent.com/edyhsgr/CACountyPyramids/master/agelabels.csv",sep=",",header=TRUE)
 cat<-array(cat$x[1:101])
 
-select<-subset(Kx, Kx$fips==input$County & Kx$year==input$YEAR_1)
+options(scipen = 999)
+
+if(input$Area!=6){
+select<-subset(Kx, Kx$fips==input$Area & Kx$year==input$YEAR_1)
 male<-select$pop_male
 if(input$SetXAxes=="NO") {barplot(male,horiz=T,names=cat,las=2,axes=FALSE,xlim=c(max(male)*1.5,0),col=rgb(0,.9,.6,1),border=rgb(0,.9,.6,1))}
 if(input$SetXAxes=="YES") {barplot(male,horiz=T,names=cat,las=2,axes=FALSE,xlim=c(input$XAxesMax,0),col=rgb(0,.9,.6,1),border=rgb(0,.9,.6,1))}
 par(new=TRUE)
-select2<-subset(Kx, Kx$fips==input$County & Kx$year==input$YEAR_2)
+select2<-subset(Kx, Kx$fips==input$Area & Kx$year==input$YEAR_2)
 male2<-select2$pop_male
-if(input$SetXAxes=="NO") {barplot(male2,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(max(male)*1.5,0),col=rgb(0,0,0,0))}
-if(input$SetXAxes=="YES") {barplot(male2,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(input$XAxesMax,0),col=rgb(0,0,0,0))}
+Placement1<-max(male)*1.5
+Placement2<-input$XAxesMax
+if(input$SetXAxes=="NO") {barplot(male2,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(Placement1,0),col=rgb(0,0,0,0))}
+if(input$SetXAxes=="YES") {barplot(male2,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(Placement2,0),col=rgb(0,0,0,0))}
 mtext(side=1,line=5,adj=.75,text=expression("Male"),font=1,cex=1.5)
 axis(side=1,cex.axis=1.1,las=2)
+}
+
+if(input$Area==6){
+male<-aggregate(Kx$pop_male, by=list(Kx$age,Kx$year), FUN=sum)
+select<-subset(male, male$Group.2==input$YEAR_1)
+male<-select$x
+if(input$SetXAxes=="NO") {barplot(male,horiz=T,names=cat,las=2,axes=FALSE,xlim=c(max(male)*1.5,0),col=rgb(0,.9,.6,1),border=rgb(0,.9,.6,1))}
+if(input$SetXAxes=="YES") {barplot(male,horiz=T,names=cat,las=2,axes=FALSE,xlim=c(input$XAxesMax,0),col=rgb(0,.9,.6,1),border=rgb(0,.9,.6,1))}
+par(new=TRUE)
+male2<-aggregate(Kx$pop_male, by=list(Kx$age,Kx$year), FUN=sum)
+select2<-subset(male2, male2$Group.2==input$YEAR_2)
+male2<-select2$x
+Placement1<-max(male)*1.5
+Placement2<-input$XAxesMax
+if(input$SetXAxes=="NO") {barplot(male2,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(Placement1,0),col=rgb(0,0,0,0))}
+if(input$SetXAxes=="YES") {barplot(male2,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(Placement2,0),col=rgb(0,0,0,0))}
+mtext(side=1,line=5,adj=.75,text=expression("Male"),font=1,cex=1.5)
+axis(side=1,cex.axis=1.1,las=2)
+}
 
 mtext(side=1,line=-44,adj=-.1,text="Age",font=1,cex=1)
-mtext(side=1,line=-45,at=3,text=paste(c("Population by Age and Sex, ", names(choicevec[choicevec == input$County]), " County"),collapse=""),font=1,cex=1.75)
+if(input$Area!=6){mtext(side=1,line=-45,at=3,text=paste(c("Population by Age and Sex, ", names(choicevec[choicevec == input$Area]), " County"),collapse=""),font=1,cex=1.75)}
+if(input$Area==6){mtext(side=1,line=-45,at=3,text=paste(c("Population by Age and Sex, ", names(choicevec[choicevec == input$Area])),collapse=""),font=1,cex=1.75)}
 mtext(side=1,line=8,adj=0,text=paste(c("Source: California Department of Finance. Accessed via data.ca.gov, uploaded August 2019."),collapse=""),font=1,cex=1)
 
-legend(max(male)*1.25, 100, legend=c(input$YEAR_1,input$YEAR_2), col=c(rgb(0,.9,.6,1),rgb(0,1,1,0)), pt.cex=2, pch=15, cex=1.5, bty ="n", y.intersp=1.25)
-legend(max(male)*1.25, 100, legend=c("",""), col=c(rgb(0,.9,.6,1), rgb(0,0,0)), pt.cex=2, pch=0, cex=1.5, bty ="n", y.intersp=1.25)
+if(input$SetXAxes=="NO") {legend(Placement1*.85, 100, legend=c(input$YEAR_1,input$YEAR_2), col=c(rgb(0,.9,.6,1),rgb(0,1,1,0)), pt.cex=2, pch=15, cex=1.5, bty ="n", y.intersp=1.25)}
+if(input$SetXAxes=="NO") {legend(Placement1*.85, 100, legend=c("",""), col=c(rgb(0,.9,.6,1), rgb(0,0,0)), pt.cex=2, pch=0, cex=1.5, bty ="n", y.intersp=1.25)}
 
-select3<-subset(Kx, Kx$fips==input$County & Kx$year==input$YEAR_1)
+if(input$SetXAxes=="YES") {legend(Placement2*.85, 100, legend=c(input$YEAR_1,input$YEAR_2), col=c(rgb(0,.9,.6,1),rgb(0,1,1,0)), pt.cex=2, pch=15, cex=1.5, bty ="n", y.intersp=1.25)}
+if(input$SetXAxes=="YES") {legend(Placement2*.85, 100, legend=c("",""), col=c(rgb(0,.9,.6,1), rgb(0,0,0)), pt.cex=2, pch=0, cex=1.5, bty ="n", y.intersp=1.25)}
+
+if(input$Area!=6){
+select3<-subset(Kx, Kx$fips==input$Area & Kx$year==input$YEAR_1)
 female<-select3$pop_female
 if(input$SetXAxes=="NO") {barplot(female,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(0,max(male)*1.5),col=rgb(0,.9,.6,1),border=NA)}
 if(input$SetXAxes=="YES") {barplot(female,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(0,input$XAxesMax),col=rgb(0,.9,.6,1),border=NA)}
 par(new=TRUE)
-select4<-subset(Kx, Kx$fips==input$County & Kx$year==input$YEAR_2)
+select4<-subset(Kx, Kx$fips==input$Area & Kx$year==input$YEAR_2)
 female2<-select4$pop_female
 if(input$SetXAxes=="NO") {barplot(female2,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(0,max(male)*1.5),col=rgb(0,0,0,0))}
 if(input$SetXAxes=="YES") {barplot(female2,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(0,input$XAxesMax),col=rgb(0,0,0,0))}
 mtext(side=1,line=5,adj=.25,text=expression("Female"),font=1,cex=1.5)
 axis(side=1,cex.axis=1.1,las=2)
+}
+
+if(input$Area==6){
+female<-aggregate(Kx$pop_female, by=list(Kx$age,Kx$year), FUN=sum)
+select3<-subset(female, female$Group.2==input$YEAR_1)
+female<-select$x
+if(input$SetXAxes=="NO") {barplot(female,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(0,max(male)*1.5),col=rgb(0,.9,.6,1),border=NA)}
+if(input$SetXAxes=="YES") {barplot(female,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(0,input$XAxesMax),col=rgb(0,.9,.6,1),border=NA)}
+par(new=TRUE)
+female2<-aggregate(Kx$pop_female, by=list(Kx$age,Kx$year), FUN=sum)
+select4<-subset(female2, female2$Group.2==input$YEAR_2)
+female2<-select2$x
+if(input$SetXAxes=="NO") {barplot(female2,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(0,max(male)*1.5),col=rgb(0,0,0,0))}
+if(input$SetXAxes=="YES") {barplot(female2,horiz=T,names=F,cex.names=.8,space=0,las=2,axes=FALSE,xlim=c(0,input$XAxesMax),col=rgb(0,0,0,0))}
+mtext(side=1,line=5,adj=.25,text=expression("Female"),font=1,cex=1.5)
+axis(side=1,cex.axis=1.1,las=2)
+}
 
 #####
 
