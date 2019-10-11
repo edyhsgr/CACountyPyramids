@@ -16,7 +16,7 @@ library(shiny)
 ui<-fluidPage(
 
 	tags$h3("California State and County Population Pyramid Viewer"),
-	p("California county population estimates and projections by age and sex for 1970 to 2050. Developed by the California Department of Finance, accessed via ",
+	p("California county population estimates and projections by age and sex for 1970 to 2050. Data developed by the California Department of Finance, and accessed via ",
 	tags$a(href="https://data.ca.gov/dataset/california-population-projection-by-county-age-gender-and-ethnicity", "data.ca.gov")),
   
 hr(),
@@ -236,7 +236,7 @@ axis(side=1,cex.axis=1.1,las=2)
 mtext(side=1,line=-44,adj=-.1,text="Age",font=1,cex=1)
 if(input$Area!=6){mtext(side=1,line=-45,at=3,text=paste(c("Population by Age and Sex, ", names(choicevec[choicevec == input$Area]), " County"),collapse=""),font=1,cex=1.75)}
 if(input$Area==6){mtext(side=1,line=-45,at=3,text=paste(c("Population by Age and Sex, ", names(choicevec[choicevec == input$Area])),collapse=""),font=1,cex=1.75)}
-mtext(side=1,line=8,adj=0,text=paste(c("Source: California Department of Finance. Accessed via data.ca.gov, uploaded August 2019."),collapse=""),font=1,cex=1)
+mtext(side=1,line=8,adj=0,text=paste(c("Source: California Department of Finance, August 2019. Accessed via data.ca.gov."),collapse=""),font=1,cex=1)
 
 if(input$SetXAxes=="NO") {legend(Placement1*.85, 100, legend=c(input$YEAR_1,input$YEAR_2), col=c(rgb(0,.9,.6,1),rgb(0,1,1,0)), pt.cex=2, pch=15, cex=1.5, bty ="n", y.intersp=1.25)}
 if(input$SetXAxes=="NO") {legend(Placement1*.85, 100, legend=c("",""), col=c(rgb(0,.9,.6,1), rgb(0,0,0)), pt.cex=2, pch=0, cex=1.5, bty ="n", y.intersp=1.25)}
@@ -281,4 +281,3 @@ axis(side=1,cex.axis=1.1,las=2)
 }
 
 shinyApp(ui = ui, server = server)
-
