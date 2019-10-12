@@ -13,7 +13,7 @@ library(shiny)
 ui<-fluidPage(
 
 	tags$h3("California State and County Population Pyramid Viewer"),
-	p("California county population estimates and projections by age and sex for 1970 to 2050. Data developed by the California Department of Finance, and accessed via ",
+	p("California county population estimates and projections by age and sex for 1970 to 2050. Data from the California Department of Finance, and accessed via ",
 	tags$a(href="https://data.ca.gov/dataset/california-population-projection-by-county-age-gender-and-ethnicity", "data.ca.gov")),
   
 hr(),
